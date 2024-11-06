@@ -35,6 +35,8 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
+#define TIME_MAX_DISPLAY 999999999U	// Max value to print in terminal
+
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -46,6 +48,8 @@
 TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN PV */
+
+uint32_t	currentTimeMs = 0;
 
 /* USER CODE END PV */
 
@@ -59,6 +63,18 @@ static void MX_TIM2_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+/**
+ * Timer callback.
+ */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
+	
+	if (htim->Instance == TIM2) {
+		
+		if (currentTimeMs >= TIME_MAX_DISPLAY)	currentTimeMs = 0;
+		else									currentTimeMs++;
+	}
+}
 
 /* USER CODE END 0 */
 
@@ -93,22 +109,27 @@ int main(void)
   MX_USB_DEVICE_Init();
   MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
-  
-    uint8_t testDataToSend[4];
-	testDataToSend[0] = 's';
-	testDataToSend[1] = ' ';
-	testDataToSend[2] = '\n';
-	testDataToSend[3] = '\r';
+
+	HAL_TIM_Base_Start_IT(&htim2);
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  
+  char buf[100];
+  
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  
+	  uint32_t seconds = currentTimeMs / 1000;
+	  uint16_t length = sprintf(buf, "%06d.%03d s\n\r", seconds, currentTimeMs - seconds);
+	  
+	  CDC_Transmit_FS((uint8_t*) buf, length);
+	  HAL_Delay(1000);
   }
   /* USER CODE END 3 */
 }
