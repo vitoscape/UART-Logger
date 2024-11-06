@@ -61,6 +61,15 @@ uint32_t	currentTimeMs			= 0;
 uint8_t		uart1Buf[BUFFER_SIZE]	= {0};
 uint8_t		uart2Buf[BUFFER_SIZE]	= {0};
 
+uint8_t		uart1Receiving			= 0;	// Is UART receiving data flags
+uint8_t		uart2Receiving			= 0;
+
+uint8_t		uart1Length				= 0;	// UART data length
+uint8_t		uart2Length				= 0;
+
+uint8_t		uart1ReceiveData[100]	= {0,};	// UART data arrays
+uint8_t		uart2ReceiveData[100]	= {0,};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -88,6 +97,14 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 		if (currentTimeMs >= TIME_MAX_DISPLAY)	currentTimeMs = 0;
 		else									currentTimeMs++;
 	}
+	
+	if (htim->Instance == TIM3) {
+		uart1Length = 0;
+	}
+	
+	if (htim->Instance == TIM4) {
+		uart2Receiving = 0;
+	}
 }
 
 /**
@@ -97,6 +114,9 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	
 	if (huart == &huart1) {
 		
+		
+		
+		HAL_TIM_Base_Start_IT(&htim3);	// To fix end of data frame
 	}
 	
 	if (huart == &huart2) {
@@ -142,9 +162,11 @@ int main(void)
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
-	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_TIM_Base_Start_IT(&htim2);	// For timer ms counter
+	
+	// Start receiving for both UARTs
 	HAL_UART_Receive_IT(&huart1, (uint8_t*) uart1Buf, 1);
-	HAL_UART_Receive_IT(
+	HAL_UART_Receive_IT(&huart2, (uint8_t*) uart2Buf, 1);
 
   /* USER CODE END 2 */
 
