@@ -126,10 +126,10 @@ int main(void)
     /* USER CODE BEGIN 3 */
 	  
 	  uint32_t seconds = currentTimeMs / 1000;
-	  uint16_t length = sprintf(buf, "%06d.%03d s\n\r", seconds, currentTimeMs - seconds);
+	  uint16_t length = sprintf(buf, "%06d.%03d s\n\r", seconds, currentTimeMs - seconds * 1000);
 	  
 	  CDC_Transmit_FS((uint8_t*) buf, length);
-	  HAL_Delay(1000);
+	  HAL_Delay(784);
   }
   /* USER CODE END 3 */
 }
