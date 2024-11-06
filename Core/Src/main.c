@@ -35,7 +35,9 @@
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
-#define TIME_MAX_DISPLAY 999999999U	// Max value to print in terminal
+#define TIME_MAX_DISPLAY	999999999U	// Max value to print in terminal
+
+#define BUFFER_SIZE			1			// UART input buffer size
 
 /* USER CODE END PD */
 
@@ -47,13 +49,17 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim2;
 TIM_HandleTypeDef htim3;
+TIM_HandleTypeDef htim4;
 
 UART_HandleTypeDef huart1;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-uint32_t	currentTimeMs = 0;
+uint32_t	currentTimeMs			= 0;
+
+uint8_t		uart1Buf[BUFFER_SIZE]	= {0};
+uint8_t		uart2Buf[BUFFER_SIZE]	= {0};
 
 /* USER CODE END PV */
 
@@ -64,6 +70,7 @@ static void MX_TIM2_Init(void);
 static void MX_USART1_UART_Init(void);
 static void MX_USART2_UART_Init(void);
 static void MX_TIM3_Init(void);
+static void MX_TIM4_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -80,6 +87,20 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 		
 		if (currentTimeMs >= TIME_MAX_DISPLAY)	currentTimeMs = 0;
 		else									currentTimeMs++;
+	}
+}
+
+/**
+ * UART receive callback.
+ */
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
+	
+	if (huart == &huart1) {
+		
+	}
+	
+	if (huart == &huart2) {
+		
 	}
 }
 
@@ -118,9 +139,12 @@ int main(void)
   MX_USART1_UART_Init();
   MX_USART2_UART_Init();
   MX_TIM3_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
 
 	HAL_TIM_Base_Start_IT(&htim2);
+	HAL_UART_Receive_IT(&huart1, (uint8_t*) uart1Buf, 1);
+	HAL_UART_Receive_IT(
 
   /* USER CODE END 2 */
 
@@ -255,8 +279,8 @@ static void MX_TIM3_Init(void)
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
   htim3.Init.Prescaler = 999;
-  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;						// TIM3 is used for count timeout between bytes while
-  htim3.Init.Period = 143;											// receiving them in UART, so Period = 48 * 3 - 1 = 143 for 3 ms.
+  htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim3.Init.Period = 143;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -277,6 +301,51 @@ static void MX_TIM3_Init(void)
   /* USER CODE BEGIN TIM3_Init 2 */
 
   /* USER CODE END TIM3_Init 2 */
+
+}
+
+/**
+  * @brief TIM4 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_TIM4_Init(void)
+{
+
+  /* USER CODE BEGIN TIM4_Init 0 */
+
+  /* USER CODE END TIM4_Init 0 */
+
+  TIM_ClockConfigTypeDef sClockSourceConfig = {0};
+  TIM_MasterConfigTypeDef sMasterConfig = {0};
+
+  /* USER CODE BEGIN TIM4_Init 1 */
+
+  /* USER CODE END TIM4_Init 1 */
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 0;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 65535;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  htim4.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN TIM4_Init 2 */
+
+  /* USER CODE END TIM4_Init 2 */
 
 }
 
