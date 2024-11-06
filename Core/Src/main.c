@@ -25,6 +25,8 @@
 
 #include "usbd_cdc_if.h"
 
+#include "port.h"
+
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -37,7 +39,7 @@
 
 #define TIME_MAX_DISPLAY	999999999U	// Max value to print in terminal
 
-#define BUFFER_SIZE			1			// UART input buffer size
+#define PORTS_CNT			2
 
 /* USER CODE END PD */
 
@@ -57,18 +59,6 @@ UART_HandleTypeDef huart2;
 /* USER CODE BEGIN PV */
 
 uint32_t	currentTimeMs			= 0;
-
-uint8_t		uart1Buf[BUFFER_SIZE]	= {0};
-uint8_t		uart2Buf[BUFFER_SIZE]	= {0};
-
-uint8_t		uart1Receiving			= 0;	// Is UART receiving data flags
-uint8_t		uart2Receiving			= 0;
-
-uint8_t		uart1Length				= 0;	// UART data length
-uint8_t		uart2Length				= 0;
-
-uint8_t		uart1ReceiveData[100]	= {0,};	// UART data arrays
-uint8_t		uart2ReceiveData[100]	= {0,};
 
 /* USER CODE END PV */
 
@@ -99,11 +89,11 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 	}
 	
 	if (htim->Instance == TIM3) {
-		uart1Length = 0;
+		
 	}
 	
 	if (htim->Instance == TIM4) {
-		uart2Receiving = 0;
+		
 	}
 }
 
@@ -114,9 +104,6 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	
 	if (huart == &huart1) {
 		
-		
-		
-		HAL_TIM_Base_Start_IT(&htim3);	// To fix end of data frame
 	}
 	
 	if (huart == &huart2) {
@@ -161,12 +148,18 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+  
+	LogPort logPorts[PORTS_CNT];
+	
+	for (uint8_t i = 0; i < PORTS_CNT; i++) {
+		initLogPort(&logPorts[i]);
+	}
 
 	HAL_TIM_Base_Start_IT(&htim2);	// For timer ms counter
 	
 	// Start receiving for both UARTs
-	HAL_UART_Receive_IT(&huart1, (uint8_t*) uart1Buf, 1);
-	HAL_UART_Receive_IT(&huart2, (uint8_t*) uart2Buf, 1);
+	HAL_UART_Receive_IT(&huart1, (uint8_t*) logPorts[0].buffer, 1);
+	HAL_UART_Receive_IT(&huart2, (uint8_t*) logPorts[1].buffer, 1);
 
   /* USER CODE END 2 */
 
