@@ -34,10 +34,9 @@ void writeByte(LogPort* logPort) {
  */
 char* getData(LogPort* logPort) {
 	
-	uint8_t length = (logPort->index) * 5 + 5;
+	uint8_t length = (logPort->index) * 5 + 11;	// 5 is for every byte, 11 is for frame size
 	
 	char* retVal = malloc(length);
-	//char retVal[length];
 	
 	// Add array elements
 	for (uint8_t i = 0; i < logPort->index; i++) {
@@ -48,20 +47,11 @@ char* getData(LogPort* logPort) {
 	}
 	
 	// Add data frame length
-	char lengthString[3];
-	sprintf(lengthString, "%3d", logPort->index);
-	strncat(retVal, lengthString, 3);
-	
-	//char* retValPtr = retVal;
-	
-	//return retValPtr;
+	char lengthString[10];
+	sprintf(lengthString, "%03d bytes", logPort->index);
+	strncat(retVal, lengthString, 10);
 	
 	return retVal;
-}
-
-uint8_t getLength(LogPort* logPort) {
-	
-	
 }
 
 /**

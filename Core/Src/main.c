@@ -109,15 +109,17 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	if (huart == &huart1) {
 		
 		writeByte(&logPorts[0]);
-		__HAL_TIM_CLEAR_FLAG(&htim3, TIM_SR_UIF);	// Clear interrapt flag to avoid calling of callback while timer starts
-		HAL_TIM_Base_Start_IT(&htim3);				// Start timer to know when message is received
+		__HAL_TIM_CLEAR_FLAG(&htim3, TIM_SR_UIF);						// Clear interrapt flag to avoid calling of callback while timer starts
+		HAL_TIM_Base_Start_IT(&htim3);									// Start timer to know when message is received
+		HAL_UART_Receive_IT(&huart1, (uint8_t*) logPorts[0].buffer, 1);	// Start UART receive to accept next byte
 	}
 	
 	if (huart == &huart2) {
 		
 		writeByte(&logPorts[1]);
-		__HAL_TIM_CLEAR_FLAG(&htim4, TIM_SR_UIF);	// Clear interrapt flag to avoid calling of callback while timer starts
-		HAL_TIM_Base_Start_IT(&htim4);				// Start timer to know when message is received
+		__HAL_TIM_CLEAR_FLAG(&htim4, TIM_SR_UIF);						// Clear interrapt flag to avoid calling of callback while timer starts
+		HAL_TIM_Base_Start_IT(&htim4);									// Start timer to know when message is received
+		HAL_UART_Receive_IT(&huart2, (uint8_t*) logPorts[1].buffer, 1);	// Start UART receive to accept next byte
 	}
 }
 
@@ -176,8 +178,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   
 	char buf[100];
-	
-	char bufDebug[5] = "Tst\n\r";
   
   while (1)
   {
@@ -201,9 +201,6 @@ int main(void)
 			}
 		  
 		}
-		
-		CDC_Transmit_FS((uint8_t*) bufDebug, 5);
-		HAL_Delay(500);
 	}
 	
   /* USER CODE END 3 */
