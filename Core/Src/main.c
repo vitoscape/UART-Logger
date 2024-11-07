@@ -192,7 +192,7 @@ int main(void)
 				uint32_t seconds = currentTimeMs / 1000;
 				char* data = getData(&logPorts[i]);
 				
-				uint16_t length = sprintf(buf, "%d) %06d.%03d s %s\n\r", i, seconds,
+				uint16_t length = sprintf(buf, "%d) %06d.%03d s %s\n\r", i + 1, seconds,
 						currentTimeMs - seconds * 1000, data);
 				CDC_Transmit_FS((uint8_t*) buf, length);
 				
