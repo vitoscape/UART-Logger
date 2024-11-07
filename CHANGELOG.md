@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.1]
+
+### Fixed
+
+- Number of port in printing messages.
+
 ## [0.2.0]
 
 ### Added
