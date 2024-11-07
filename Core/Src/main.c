@@ -91,11 +91,13 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef* htim) {
 	}
 	
 	if (htim->Instance == TIM3) {
-		
+		setFlag(&logPorts[0], 1);
+		HAL_TIM_Base_Stop_IT(&htim3);
 	}
 	
 	if (htim->Instance == TIM4) {
-		
+		setFlag(&logPorts[1], 1);
+		HAL_TIM_Base_Stop_IT(&htim4);
 	}
 }
 
@@ -173,7 +175,9 @@ int main(void)
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   
-  char buf[100];
+	char buf[100];
+	
+	char bufDebug[5] = "Tst\n\r";
   
   while (1)
   {
@@ -185,14 +189,23 @@ int main(void)
 		  
 			if (logPorts[i].hasMessage) {
 			  
-			  
 				uint32_t seconds = currentTimeMs / 1000;
-				uint16_t length = sprintf(buf, "%d) %06d.%03d s\n\r", i, seconds, currentTimeMs - seconds * 1000);
+				char* data = getData(&logPorts[i]);
+				
+				uint16_t length = sprintf(buf, "%d) %06d.%03d s %s\n\r", i, seconds,
+						currentTimeMs - seconds * 1000, data);
 				CDC_Transmit_FS((uint8_t*) buf, length);
+				
+				free(data);
+				initLogPort(&logPorts[i]);	// Re-init logPort when message has printed
 			}
 		  
 		}
-  }
+		
+		CDC_Transmit_FS((uint8_t*) bufDebug, 5);
+		HAL_Delay(500);
+	}
+	
   /* USER CODE END 3 */
 }
 
