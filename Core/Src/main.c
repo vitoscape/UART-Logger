@@ -58,6 +58,8 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
+LogPort		logPorts[PORTS_CNT];
+
 uint32_t	currentTimeMs			= 0;
 
 /* USER CODE END PV */
@@ -104,10 +106,16 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart) {
 	
 	if (huart == &huart1) {
 		
+		writeByte(&logPorts[0]);
+		__HAL_TIM_CLEAR_FLAG(&htim3, TIM_SR_UIF);	// Clear interrapt flag to avoid calling of callback while timer starts
+		HAL_TIM_Base_Start_IT(&htim3);				// Start timer to know when message is received
 	}
 	
 	if (huart == &huart2) {
 		
+		writeByte(&logPorts[1]);
+		__HAL_TIM_CLEAR_FLAG(&htim4, TIM_SR_UIF);	// Clear interrapt flag to avoid calling of callback while timer starts
+		HAL_TIM_Base_Start_IT(&htim4);				// Start timer to know when message is received
 	}
 }
 
@@ -148,14 +156,13 @@ int main(void)
   MX_TIM3_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-  
-	LogPort logPorts[PORTS_CNT];
 	
 	for (uint8_t i = 0; i < PORTS_CNT; i++) {
 		initLogPort(&logPorts[i]);
 	}
 
-	HAL_TIM_Base_Start_IT(&htim2);	// For timer ms counter
+	__HAL_TIM_CLEAR_FLAG(&htim2, TIM_SR_UIF);	// Clear interrapt flag to avoid calling of callback while timer starts
+	HAL_TIM_Base_Start_IT(&htim2);				// For timer ms counter
 	
 	// Start receiving for both UARTs
 	HAL_UART_Receive_IT(&huart1, (uint8_t*) logPorts[0].buffer, 1);
@@ -174,11 +181,17 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  
-	  uint32_t seconds = currentTimeMs / 1000;
-	  uint16_t length = sprintf(buf, "%06d.%03d s\n\r", seconds, currentTimeMs - seconds * 1000);
-	  
-	  CDC_Transmit_FS((uint8_t*) buf, length);
-	  HAL_Delay(784);
+		for (uint8_t i = 0; i < PORTS_CNT; i++) {
+		  
+			if (logPorts[i].hasMessage) {
+			  
+			  
+				uint32_t seconds = currentTimeMs / 1000;
+				uint16_t length = sprintf(buf, "%d) %06d.%03d s\n\r", i, seconds, currentTimeMs - seconds * 1000);
+				CDC_Transmit_FS((uint8_t*) buf, length);
+			}
+		  
+		}
   }
   /* USER CODE END 3 */
 }
