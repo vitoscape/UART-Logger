@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.2]
+
+### Added
+
+- Terminal output example in README.md.
+
 ## [0.2.1]
 
 ### Fixed
